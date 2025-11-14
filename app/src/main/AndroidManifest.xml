@@ -40,9 +40,7 @@
         <activity
             android:name=".GroceryListsActivity"
             android:exported="false" />
-        <activity
-            android:name=".NearbyGroceryStoresMaps"
-            android:exported="false" />
+        
           <!-- Sign Up Screen -->
         <activity
             android:name=".SignUpActivity"
@@ -52,7 +50,9 @@
         <activity
             android:name=".RecipeDetailActivity"
             android:exported="false" />
-
+        <activity
+            android:name=".NearbyGroceryStoresMaps"
+            android:exported="true" />
 
     </application>
 
