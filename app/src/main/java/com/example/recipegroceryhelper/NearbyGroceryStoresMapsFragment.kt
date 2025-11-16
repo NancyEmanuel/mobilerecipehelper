@@ -25,24 +25,16 @@ import com.google.android.libraries.places.api.net.SearchNearbyRequest
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.android.libraries.places.api.model.CircularBounds
 import com.google.android.libraries.places.api.model.Place
+import androidx.core.app.ActivityCompat
 
-class NearbyGroceryStoresMapsFragment : Fragment(), OnMapReadyCallback {
+class NearbyGroceryStoresMapsFragment : Fragment() {
+
 
     private lateinit var groceryMap: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var placesClient: PlacesClient
 
-    // Lecture 7 Slide 25: Modern permission request using ActivityResultContracts
-    private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (isGranted) {
-            getCurrentLocationAndFindStores()
-        } else {
-            Toast.makeText(requireContext(), "Location permission required", Toast.LENGTH_SHORT).show()
-        }
-    }
-
+    //
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -50,97 +42,135 @@ class NearbyGroceryStoresMapsFragment : Fragment(), OnMapReadyCallback {
     ): View? {
         val view = inflater.inflate(R.layout.activity_nearby_grocery_stores_maps, container, false)
 
-        // Lecture 7 Slide 40: Initialize Places SDK
+        // initialize places SDK with the API key
         if (!Places.isInitialized()) {
+
             Places.initialize(requireContext(), getString(R.string.google_map_key))
         }
+        // create PlacesClient instance that will be used to search for nearby places
         placesClient = Places.createClient(requireContext())
 
-        // Lecture 7 Slide 18: Initialize FusedLocationProviderClient
+        // initialize FusedLocationProviderClient to get the user's current location
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
 
-        // Lecture 7 Slide 40: Get the SupportMapFragment and register callback
+        //get the Map Fragment from the map layout and request notification when the map is ready to be used
         val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
-        mapFragment.getMapAsync(this)
-
+        // Wait for map to load
+        mapFragment.getMapAsync { googleMap ->
+            // Set the map to the groceryMap variable
+            groceryMap = googleMap
+            // Check for location permission
+            checkLocationPermission()
+        }
         return view
     }
 
-    // Lecture 7 Slide 42: onMapReady callback - called when map is ready to use
-    override fun onMapReady(googleMap: GoogleMap) {
-        groceryMap = googleMap
-        checkLocationPermission()
+    //
+    companion object {
+        private const val REQUEST_LOCATION_PERMISSION = 1
     }
 
-    // Lecture 7 Slide 25: Check and request location permission
+    //checks if the app has permisison to access the devices fine location
+    // if permission granted, get the users current location, if not granted request permission
     private fun checkLocationPermission() {
-        when {
-            ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                getCurrentLocationAndFindStores()
-            }
-            else -> {
-                requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-            }
+        //check if we already have location permission
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED) {
+            //if location permission not granted, request it from the user
+            ActivityCompat.requestPermissions(
+                requireActivity(),
+                //request fine locaiton permission
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                REQUEST_LOCATION_PERMISSION
+            )
+        } else {
+            //if permission already granted, then proceed to get users location
+            getCurrentLocation()
         }
     }
 
-    // Lecture 7 Slide 21: Get last known location using FusedLocationProviderClient
+    // handles the result of the permission request
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        //check if this is the response to our location permission request
+        if (requestCode == REQUEST_LOCATION_PERMISSION &&
+            grantResults.isNotEmpty() && //makes sure result is not empty
+            //check if permission was granted
+            grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            // user granted permission to access location, now can get their location
+            getCurrentLocation()
+        } else {
+            // the user denied permission, show a message to the user informing that location permission required for this map feature
+            Toast.makeText(requireContext(), "Location permission required", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // get last known location using the Fused Location Provider
+    // last known location is cached location of the device and can be instantly retrieved
     @SuppressLint("MissingPermission")
-    private fun getCurrentLocationAndFindStores() {
-        // Lecture 7 Slide 44: Enable "My Location" blue dot
+    private fun getCurrentLocation() {
+        //enables the location layer on the map
+        //blue dot indicating the users location
         groceryMap.isMyLocationEnabled = true
 
-        // Lecture 7 Slide 21: lastLocation returns cached location
+        //request the last known location from fushed location provider, returns cached location
         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+            //if location is not null,create latlng object from latitude and longitude of users location
             if (location != null) {
                 val userLocation = LatLng(location.latitude, location.longitude)
 
-                // Lecture 7 Slide 44: Center map camera with zoom level
+                // center and zoom the map camera to users location
                 groceryMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15f))
 
-                // Lecture 7 Slide 43: Add marker with custom color
+                // add marker at the users location
                 groceryMap.addMarker(
                     MarkerOptions()
                         .position(userLocation)
                         .title("Your Location")
                 )
 
+                //user location now obtained, now search for nearby grocery stores
                 findNearbyGroceryStores(userLocation)
             } else {
-                Toast.makeText(requireContext(), "Unable to get location. Enable GPS.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Unable to get your location. Make sure your're GPS is enabled.", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    // Use Places API to search for nearby grocery stores
+    // Searches for nearby grocery stores within 1.5km of user's location using google places API
     private fun findNearbyGroceryStores(location: LatLng) {
+        //specifies which data fields we want API to return for each grocery store
         val placeFields = listOf(Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS)
+        //create circular search area within 1.5 km radius of users current location
         val circle = CircularBounds.newInstance(location, 1500.0)
 
+        //create search request with the specified parameters(circular search area, and data fields)
         val searchRequest = SearchNearbyRequest.builder(circle, placeFields)
+            //only return grocery stores
             .setIncludedTypes(listOf("grocery_store", "supermarket"))
+            //limit results to 20 stores max
             .setMaxResultCount(20)
             .build()
 
+        //search for places that match the search request
         placesClient.searchNearby(searchRequest).addOnCompleteListener { task ->
+           //check if search was successful and results not null
             if (task.isSuccessful && task.result != null) {
-                val response = task.result
-
-                Toast.makeText(requireContext(), "Found ${response.places.size} stores", Toast.LENGTH_SHORT).show()
-
-                // Lecture 7 Slide 43: Add markers for each location
-                for (place in response.places) {
-                    if (place.latLng != null) {
-                        groceryMap.addMarker(
-                            MarkerOptions()
-                                .position(place.latLng!!)
-                                .title(place.name ?: "Grocery Store")
-                                .snippet(place.address)
-                                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))
-                        )
+                //loop through each grocery store in search results
+                task.result.places.forEach { place ->
+                    //only processes grocery stores that have valid lat/long
+                    place.latLng?.let { position ->
+                        //add a marker for each grocery store in the search results
+                        val marker = MarkerOptions()
+                            .position(position)
+                            .title(place.name ?: "Grocery Store") //store name
+                            .snippet(place.address) //address of store
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)) //make markers orange
+                        //add marker to map
+                        groceryMap.addMarker(marker)
                     }
                 }
             }

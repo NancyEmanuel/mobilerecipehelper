@@ -24,7 +24,7 @@
             android:layout_height="48dp"
             android:background="@android:color/transparent"
             android:backgroundTint="@null"
-            android:text="Back"
+            android:drawableLeft="@drawable/ic_arrow_back"
             android:textColor="#FFFFFF"
             android:textSize="15sp" />
 

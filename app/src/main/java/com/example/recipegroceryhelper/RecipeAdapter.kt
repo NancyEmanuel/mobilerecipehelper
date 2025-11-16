@@ -9,7 +9,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 
-data class Recipe(val name: String, val description: String, val imageUrl: String)
+data class Recipe(val id: String, val name: String, val description: String, val imageUrl: String)
 
 class RecipeAdapter(private var recipes: List<Recipe>) : RecyclerView.Adapter<RecipeAdapter.RecipeViewHolder>() {
 
@@ -35,6 +35,7 @@ class RecipeAdapter(private var recipes: List<Recipe>) : RecyclerView.Adapter<Re
 
         holder.itemView.setOnClickListener {
             val intent = Intent(holder.itemView.context, RecipeDetailActivity::class.java)
+            intent.putExtra("RECIPE_ID", recipe.id)
             intent.putExtra("RECIPE_NAME", recipe.name)
             intent.putExtra("RECIPE_INGREDIENTS", recipe.description)
             intent.putExtra("RECIPE_IMAGE_URL", recipe.imageUrl)

@@ -14,7 +14,7 @@ import com.bumptech.glide.Glide
 class GroceryItemAdapter(
     context: Context,
     private val itemsList: List<GroceryItemsActivity.GroceryItem>,
-       private val onDelete: (GroceryItemsActivity.GroceryItem) -> Unit
+    private val onDelete: (GroceryItemsActivity.GroceryItem) -> Unit
 ) : ArrayAdapter<GroceryItemsActivity.GroceryItem>(context, 0, itemsList) {
 
     override fun getView(position: Int, oldView: View?, parent: ViewGroup): View {

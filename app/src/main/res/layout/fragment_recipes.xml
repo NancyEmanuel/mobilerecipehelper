@@ -1,217 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:background="#FFEEFF">
+    android:background="#FAFAFA"
+    tools:context=".RecipesFragment">
 
-
-    <EditText
-        android:id="@+id/Search"
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="52dp"
-        android:background="#EEEEEE"
-        android:hint="Search"
-        android:inputType="text"
-        android:textColor="#AAAAAA"
-        android:textSize="20sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_height="wrap_content">
 
-    <LinearLayout
-        android:id="@+id/MealCard1"
-        android:layout_width="160dp"
-        android:layout_height="140dp"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.145"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.301"
-        tools:ignore="MissingConstraints"
-        android:background="#EEEEEE">
-
-
-        <TextView
-            android:id="@+id/MealTitle1"
-            android:layout_width="wrap_content"
+        <com.google.android.material.search.SearchBar
+            android:id="@+id/search_bar"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Soup"
-            android:textSize="30sp"
-            tools:ignore="MissingConstraints" />
+            android:hint="Search Recipes" />
 
-        <TextView
-            android:id="@+id/MealSubtitle1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Chicken Dumpling"
-            android:textSize="20sp"
-            tools:ignore="MissingConstraints" />
-    </LinearLayout>
+    </com.google.android.material.appbar.AppBarLayout>
 
-    <LinearLayout
-        android:id="@+id/MealCard2"
-        android:layout_width="160dp"
-        android:layout_height="140dp"
-        android:background="#EEEEEE"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.865"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.301"
-        tools:ignore="MissingConstraints">
+    <com.google.android.material.search.SearchView
+        android:id="@+id/search_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:hint="Search Recipes"
+        app:layout_anchor="@id/search_bar">
+        <!-- Search suggestions and results will be shown here. -->
+    </com.google.android.material.search.SearchView>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view_recipes"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="?attr/actionBarSize"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
 
-        <TextView
-            android:id="@+id/MealTitle2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Pizza"
-            android:textSize="30sp"
-            tools:ignore="MissingConstraints" />
-
-        <TextView
-            android:id="@+id/MealSubtitle2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Pepperoni"
-            android:textSize="20sp"
-            tools:ignore="MissingConstraints" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/MealCard3"
-        android:layout_width="160dp"
-        android:layout_height="140dp"
-        android:background="#EEEEEE"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.145"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.569"
-        tools:ignore="MissingConstraints">
-
-
-        <TextView
-            android:id="@+id/MealTitle3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Soup"
-            android:textSize="30sp"
-            tools:ignore="MissingConstraints" />
-
-        <TextView
-            android:id="@+id/MealSubtitle3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Chicken Dumpling"
-            android:textSize="20sp"
-            tools:ignore="MissingConstraints" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/MealCard4"
-        android:layout_width="160dp"
-        android:layout_height="140dp"
-        android:background="#EEEEEE"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.865"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.569"
-        tools:ignore="MissingConstraints">
-
-
-        <TextView
-            android:id="@+id/MealTitle4"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Soup"
-            android:textSize="30sp"
-            tools:ignore="MissingConstraints" />
-
-        <TextView
-            android:id="@+id/MealSubtitle4"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Chicken Dumpling"
-            android:textSize="20sp"
-            tools:ignore="MissingConstraints" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/MealCard5"
-        android:layout_width="160dp"
-        android:layout_height="140dp"
-        android:background="#EEEEEE"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.147"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.839"
-        tools:ignore="MissingConstraints">
-
-
-        <TextView
-            android:id="@+id/MealTitle5"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Soup"
-            android:textSize="30sp"
-            tools:ignore="MissingConstraints" />
-
-        <TextView
-            android:id="@+id/MealSubtitle5"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Chicken Dumpling"
-            android:textSize="20sp"
-            tools:ignore="MissingConstraints" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/MealCard6"
-        android:layout_width="160dp"
-        android:layout_height="140dp"
-        android:background="#EEEEEE"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.868"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.839"
-        tools:ignore="MissingConstraints">
-
-
-        <TextView
-            android:id="@+id/MealTitle6"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Soup"
-            android:textSize="30sp"
-            tools:ignore="MissingConstraints" />
-
-        <TextView
-            android:id="@+id/MealSubtitle6"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Chicken Dumpling"
-            android:textSize="20sp"
-            tools:ignore="MissingConstraints" />
-    </LinearLayout>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
