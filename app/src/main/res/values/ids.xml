@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="recipe_image" type="id" />
+    <item name="recipe_name" type="id" />
+    <item name="recipe_description" type="id" />
+</resources>
