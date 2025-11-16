@@ -37,11 +37,12 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.activity)
-    implementation(libs.androidx.constraintlayout)
+
 
     // Firebase BoM - manages all Firebase versions
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
@@ -60,10 +61,12 @@ dependencies {
 
     implementation(libs.androidx.recyclerview)
     implementation(libs.androidx.fragment)
+    implementation(libs.androidx.cardview)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
 
 
 }

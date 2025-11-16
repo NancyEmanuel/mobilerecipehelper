@@ -3,4 +3,19 @@
     <string name="app_version">1.0.0</string>
     <string name="app_build">1</string>
     <string name="google_map_key">AIzaSyBkWalcuxSd2vw5aBh6l1QhmSshiPMjIlA</string>
+    <string name="recipe_image_description">Image of the recipe</string>
+    <string name="login_app_name">GroceryHelper</string>
+    <string name="login_app_subtitle">Smart shopping, better cooking</string>
+    <string name="login_welcome_back">Welcome back</string>
+    <string name="login_sign_in_prompt">Login to your account to continue</string>
+    <string name="login_email_label">Email</string>
+    <string name="login_email_hint">your@email.com</string>
+    <string name="login_password_label">Password</string>
+    <string name="login_password_hint">••••••••</string>
+    <string name="login_button">Login</string>
+    <string name="login_no_account_prompt">Don\'t have an account? </string>
+    <string name="login_sign_up_link">Sign up</string>
+    <string name="login_forgot_password">Forgot password?</string>
+    <string name="login_terms_of_service">By continuing, you agree to our Terms of Service and Privacy Policy</string>
+    <string name="login_app_icon_content_description">Application icon</string>
 </resources>
