@@ -1,52 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
-    app:cardCornerRadius="8dp"
+    app:cardCornerRadius="12dp"
     app:cardElevation="4dp">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="wrap_content">
 
-        <!-- This ImageView has the ID your adapter is looking for -->
         <ImageView
             android:id="@+id/recipe_image"
-            android:layout_width="match_parent"
-            android:layout_height="150dp"
+            android:layout_width="0dp"
+            android:layout_height="120dp"
             android:scaleType="centerCrop"
-            android:contentDescription="@string/recipe_image_description" />
+            android:src="@drawable/ic_launcher_background"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/recipe_name"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:text="Recipe Name"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
+            android:layout_margin="12dp"
+            app:layout_constraintTop_toBottomOf="@id/recipe_image"
+            app:layout_constraintStart_toStartOf="parent" />
 
-            <!-- This TextView has the ID for the recipe name -->
-            <TextView
-                android:id="@+id/recipe_name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Recipe Name"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/black"/>
+        <TextView
+            android:id="@+id/recipe_description"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Recipe Description"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+            android:layout_marginStart="12dp"
+            android:layout_marginBottom="12dp"
+            app:layout_constraintTop_toBottomOf="@id/recipe_name"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
-            <!-- This TextView has the ID for the recipe description -->
-            <TextView
-                android:id="@+id/recipe_description"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Recipe Description"
-                android:layout_marginTop="4dp"
-                android:maxLines="2"
-                android:ellipsize="end"
-                android:textColor="@android:color/darker_gray"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-        </LinearLayout>
-    </LinearLayout>
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>

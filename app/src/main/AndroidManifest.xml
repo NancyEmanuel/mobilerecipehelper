@@ -38,12 +38,15 @@
 
         <!-- All other activities declared only ONCE -->
         <activity
-            android:name=".MainActivity" />
+            android:name=".MainActivity"
+            android:exported="false" />
 
 
         
           <!-- Sign Up Screen -->
-        <activity android:name=".SignUpActivity"/>
+        <activity
+            android:name=".SignUpActivity"
+            android:exported="false" />
 
         <!-- Recipe Detail Screen -->
       <activity

@@ -1,172 +1,281 @@
 package com.example.recipegroceryhelper
 
 import android.Manifest
+import android.app.Activity
+import android.app.AlertDialog
+import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
+import android.graphics.Bitmap
 import android.os.Bundle
-import android.os.Environment
+import android.provider.MediaStore
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
-import java.io.File
+import java.io.ByteArrayOutputStream
+import java.util.UUID
 
 class GroceryItemsActivity : AppCompatActivity() {
 
-    data class GroceryItem(
-        val id: String = "",
-        val name: String = "",
-        val imageUrl: String = ""
-    )
+    // Request codes for permissions + camera activity
+    private val CAMERA_REQUEST_CODE = 101
+    private val CAMERA_PERMISSION_CODE = 102
 
+    // Firebase instances
     private lateinit var auth: FirebaseAuth
     private lateinit var database: FirebaseDatabase
     private lateinit var storage: FirebaseStorage
-    private lateinit var itemAdapter: GroceryItemAdapter
-    private val items = mutableListOf<GroceryItem>()
-    private var groceryListId: String = ""
-    private var groceryListName: String = ""
-    private var photoUri: Uri? = null
 
+    // Adapter + data list
+    private lateinit var adapter: GroceryItemAdapter
+    private val groceryItems = mutableListOf<GroceryItem>()
 
-    // Camera launcher
-    private val cameraLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { photoTaken ->
-        if (photoTaken && photoUri != null) {
-            saveItemWithPhoto()
-        }
-    }
+    // ID of the grocery list we are viewing
+    private lateinit var listId: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_grocery_items)
 
+        // Retrieve list ID + name from previous activity
+        listId = intent.getStringExtra("LIST_ID") ?: return
+        val listName = intent.getStringExtra("LIST_NAME")
+
+        // Display the name of the grocery list
+        findViewById<TextView>(R.id.ListTitle).text = listName
+
+        // Initialize Firebase
         auth = FirebaseAuth.getInstance()
         database = FirebaseDatabase.getInstance()
         storage = FirebaseStorage.getInstance()
 
-        groceryListId = intent.getStringExtra("LIST_ID") ?: ""
-        groceryListName = intent.getStringExtra("LIST_NAME") ?: "Grocery List"
+        // UI elements
+        val etNewItemName = findViewById<EditText>(R.id.NewItem)
+        val btnAddItem = findViewById<Button>(R.id.AddItem)
+        val btnAddPhoto = findViewById<Button>(R.id.BtnCaptureImage)
+        val btnBack = findViewById<Button>(R.id.BtnBack)
+        val listView = findViewById<ListView>(R.id.Items)
 
+        // Set up the ListView adapter
+        adapter = GroceryItemAdapter(this, groceryItems,
+            { item, isChecked -> 
+                // Checkbox logic (unused for now)
+            },
+            { item ->
+                // Clicking an item opens edit/delete dialog
+                showEditOrDeleteDialog(item)
+            })
 
-        setupViews()
-        getItems()
-    }
+        listView.adapter = adapter
 
-    private fun setupViews() {
-        val groceryItemText = findViewById<TextView>(R.id.Title)
-        val itemInput = findViewById<EditText>(R.id.NewItem)
-        val addItemButton = findViewById<Button>(R.id.AddItem)
-        val takePhotoButton = findViewById<Button>(R.id.TakeImage)
-        val backButton = findViewById<Button>(R.id.Back)
-        val itemsList = findViewById<ListView>(R.id.Items)
+        // Return to previous screen
+        btnBack.setOnClickListener { finish() }
 
-        groceryItemText.text = groceryListName
-
-        itemAdapter = GroceryItemAdapter(this, items, ::removeItem)
-        itemsList.adapter = itemAdapter
-
-        addItemButton.setOnClickListener {
-            val itemText = itemInput.text.toString().trim()
-            if (itemText.isNotEmpty()) {
-                saveItem(itemText, "")
-                itemInput.text.clear()
+        // Add new item without a photo
+        btnAddItem.setOnClickListener {
+            val itemName = etNewItemName.text.toString().trim()
+            if (itemName.isNotEmpty()) {
+                addNewItem(itemName)
+                etNewItemName.text.clear()
             } else {
-                Toast.makeText(this, "Enter item name", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Please enter an item name", Toast.LENGTH_SHORT).show()
             }
         }
 
-        takePhotoButton.setOnClickListener {
-            launchCamera()
-        }
+        // Capture image for item
+        btnAddPhoto.setOnClickListener { checkCameraPermissionAndOpen() }
 
-        backButton.setOnClickListener {
-            finish()
-        }
+        // Load items from Firebase
+        loadGroceryItems()
     }
 
-    private fun launchCamera() {
-        val photoFile = File.createTempFile(
-            "IMG_",
-            ".jpg",
-            getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        )
-        photoUri = FileProvider.getUriForFile(this, "${packageName}.provider", photoFile)
-        cameraLauncher.launch(photoUri!!)
-    }
 
-    private fun saveItemWithPhoto() {
-        val userId = auth.currentUser?.uid ?: return
-        val groceryItemText = findViewById<EditText>(R.id.NewItem).text.toString().trim()
-        val imageUri = photoUri ?: return
+    /* ---------------------- DIALOGS (Edit/Delete) ---------------------- */
 
-        val imageName = "item_${System.currentTimeMillis()}.jpg"
-        val imageRef = storage.reference
-            .child("users/$userId/items/$imageName")
-
-        imageRef.putFile(imageUri)
-            .addOnSuccessListener {
-                imageRef.downloadUrl.addOnSuccessListener { url ->
-                    saveItem(groceryItemText, url.toString())
-                    findViewById<EditText>(R.id.NewItem).text.clear()
-                    Toast.makeText(this, "Item saved", Toast.LENGTH_SHORT).show()
+    private fun showEditOrDeleteDialog(item: GroceryItem) {
+        val options = arrayOf("Edit", "Delete")
+        AlertDialog.Builder(this)
+            .setTitle("Choose Action")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> showEditItemDialog(item)
+                    1 -> deleteItem(item)
                 }
             }
-
+            .show()
     }
 
-    private fun saveItem(itemText: String, photoUrl: String) {
-        val userId = auth.currentUser?.uid ?: return
-        val itemKey = database.reference.push().key ?: return
+    private fun showEditItemDialog(item: GroceryItem) {
+        val editText = EditText(this)
+        editText.setText(item.name)
 
-        val newItem = GroceryItem(
-            id = itemKey,
-            name = itemText,
-            imageUrl = photoUrl
-        )
-
-        database.reference
-            .child("users/$userId/groceryLists/$groceryListId/items/$itemKey")
-            .setValue(newItem)
-
+        AlertDialog.Builder(this)
+            .setTitle("Edit Item Name")
+            .setView(editText)
+            .setPositiveButton("Save") { _, _ ->
+                val newName = editText.text.toString().trim()
+                if (newName.isNotEmpty()) updateItemName(item, newName)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
-    private fun getItems() {
+    private fun updateItemName(item: GroceryItem, newName: String) {
+        val userId = auth.currentUser?.uid ?: return
+        val updatedItem = item.copy(name = newName)
+
+        database.reference.child("users")
+            .child(userId)
+            .child("groceryLists")
+            .child(listId)
+            .child("items")
+            .child(item.id)
+            .setValue(updatedItem)
+    }
+
+
+    /* ---------------------- LOADING ITEMS ---------------------- */
+
+    private fun loadGroceryItems() {
         val userId = auth.currentUser?.uid ?: return
 
-        database.reference
-            .child("users/$userId/groceryLists/$groceryListId/items")
+        database.reference.child("users").child(userId)
+            .child("groceryLists").child(listId).child("items")
             .addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(data: DataSnapshot) {
-                    items.clear()
-                    for (snapshot in data.children) {
-                        val item = snapshot.getValue(GroceryItem::class.java)
-                        if (item != null) {
-                            items.add(item)
-                        }
+
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    groceryItems.clear()
+
+                    // Convert Firebase data into GroceryItem objects
+                    for (itemSnapshot in snapshot.children) {
+                        val item = itemSnapshot.getValue(GroceryItem::class.java)
+                        if (item != null) groceryItems.add(item)
                     }
 
-                    itemAdapter.notifyDataSetChanged()
+                    adapter.notifyDataSetChanged()
                 }
 
-                override fun onCancelled(error: DatabaseError) {}
+                override fun onCancelled(error: DatabaseError) {
+                    // Optional: show error toast
+                }
             })
     }
 
-    private fun removeItem(item: GroceryItem) {
+
+    /* ---------------------- ADD + DELETE ITEMS ---------------------- */
+
+    private fun addNewItem(itemName: String, imageUrl: String = "") {
         val userId = auth.currentUser?.uid ?: return
-        database.reference
-            .child("users/$userId/groceryLists/$groceryListId/items/${item.id}")
+
+        // Generate unique ID for item
+        val itemId = database.reference.push().key ?: return
+
+        val item = GroceryItem(itemId, itemName, imageUrl)
+
+        // Save under: users → uid → groceryLists → listId → items → itemId
+        database.reference.child("users").child(userId)
+            .child("groceryLists").child(listId).child("items").child(itemId)
+            .setValue(item)
+    }
+
+    private fun deleteItem(item: GroceryItem) {
+        val userId = auth.currentUser?.uid ?: return
+
+        database.reference.child("users").child(userId)
+            .child("groceryLists").child(listId).child("items").child(item.id)
             .removeValue()
+    }
+
+
+    /* ---------------------- CAMERA + IMAGE UPLOAD ---------------------- */
+
+    private fun checkCameraPermissionAndOpen() {
+        // If permission granted → open camera
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+            == PackageManager.PERMISSION_GRANTED) {
+            openCamera()
+        } else {
+            // Ask for permission
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.CAMERA),
+                CAMERA_PERMISSION_CODE
+            )
+        }
+    }
+
+    private fun openCamera() {
+        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        startActivityForResult(cameraIntent, CAMERA_REQUEST_CODE)
+    }
+
+    // Called after user responds to permission popup
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == CAMERA_PERMISSION_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                openCamera()
+            else
+                Toast.makeText(this, "Camera Permission Denied", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // Receives the captured photo
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == CAMERA_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+
+            // Extract image bitmap from camera response
+            val photo: Bitmap = data?.extras?.get("data") as Bitmap
+
+            val itemName = findViewById<EditText>(R.id.NewItem).text.toString().trim()
+
+            if (itemName.isNotEmpty()) {
+                uploadImageAndAddItem(photo, itemName)
+                findViewById<EditText>(R.id.NewItem).text.clear()
+            } else {
+                Toast.makeText(this, "Please enter an item name before taking a photo", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun uploadImageAndAddItem(photo: Bitmap, itemName: String) {
+        val userId = auth.currentUser?.uid ?: return
+
+        val storageRef = storage.reference
+
+        // Create unique filename
+        val imageId = UUID.randomUUID().toString()
+        val imagePath = "users/$userId/groceryLists/$listId/images/$imageId.jpg"
+        val imageRef = storageRef.child(imagePath)
+
+        // Convert bitmap → byte array
+        val baos = ByteArrayOutputStream()
+        photo.compress(Bitmap.CompressFormat.JPEG, 100, baos)
+        val data = baos.toByteArray()
+
+        // Upload to Firebase Storage
+        imageRef.putBytes(data)
+            .addOnSuccessListener {
+                imageRef.downloadUrl.addOnSuccessListener { uri ->
+                    // Save item with image download URL
+                    addNewItem(itemName, uri.toString())
+                }
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Image upload failed: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
     }
 }

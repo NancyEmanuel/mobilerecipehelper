@@ -1,37 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <!-- SearchBar -->
-    <com.google.android.material.search.SearchBar
-        android:id="@+id/search_bar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Search recipes..." />
-
-    <!-- RecyclerView for the recipes -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycler_view_recipes"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_anchor="@id/search_bar"
-        app:layout_behavior="com.google.android.material.search.SearchBar$ScrollingViewBehavior"/>
-
-    <!-- SearchView -->
-    <com.google.android.material.search.SearchView
-        android:id="@+id/search_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:hint="Search recipes..."
-        app:layout_anchor="@id/search_bar">
-        <!-- You can add content here for search suggestions if needed -->
-    </com.google.android.material.search.SearchView>
-
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
-<!--- <androidx.constraintlayout.widget.ConstraintLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -246,4 +214,4 @@
             tools:ignore="MissingConstraints" />
     </LinearLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout> -->
+</androidx.constraintlayout.widget.ConstraintLayout>
