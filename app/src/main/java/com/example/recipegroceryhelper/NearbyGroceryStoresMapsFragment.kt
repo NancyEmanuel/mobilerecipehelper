@@ -34,7 +34,7 @@ class NearbyGroceryStoresMapsFragment : Fragment() {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var placesClient: PlacesClient
 
-    //
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
